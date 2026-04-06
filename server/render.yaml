@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: arxiv-research-api
+    runtime: docker
+    rootDir: server
+    dockerfilePath: ./Dockerfile
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        sync: false  # Set in Render dashboard
+      - key: AZURE_PROJECT_ENDPOINT
+        sync: false
+      - key: AZURE_API_KEY
+        sync: false
+      - key: AZURE_API_VERSION
+        value: 2025-11-15-preview
