@@ -1,7 +1,8 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import init_db
+from app.auth import verify_api_key
 from app.routers import collect, papers, news, reports
 
 
@@ -11,7 +12,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="ArXiv Research API", lifespan=lifespan)
+app = FastAPI(title="ArXiv Research API", lifespan=lifespan, dependencies=[Depends(verify_api_key)])
 
 app.add_middleware(
     CORSMiddleware,

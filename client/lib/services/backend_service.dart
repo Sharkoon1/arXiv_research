@@ -64,13 +64,18 @@ class BackendService {
       : baseUrl = baseUrl ?? AppConstants.backendBaseUrl,
         _client = client ?? http.Client();
 
+  Map<String, String> get _headers => {
+    'Content-Type': 'application/json',
+    'X-Api-Key': AppConstants.apiKey,
+  };
+
   Future<CollectResult> startCollection({
     required int papersLimit,
     required int newsLimit,
   }) async {
     final resp = await _client.post(
       Uri.parse('$baseUrl/collect'),
-      headers: {'Content-Type': 'application/json'},
+      headers: _headers,
       body: jsonEncode({
         'papers_limit': papersLimit.clamp(1, 50),
         'news_limit': newsLimit.clamp(1, 50),
@@ -102,7 +107,7 @@ class BackendService {
   }
 
   Future<List<ReportSummary>> getReports() async {
-    final resp = await _client.get(Uri.parse('$baseUrl/reports'));
+    final resp = await _client.get(Uri.parse('$baseUrl/reports'), headers: _headers);
     if (resp.statusCode != 200) {
       throw BackendException('Failed to fetch reports: HTTP ${resp.statusCode}');
     }
@@ -120,7 +125,7 @@ class BackendService {
   }
 
   Future<ReportDetail> getReport(String reportId) async {
-    final resp = await _client.get(Uri.parse('$baseUrl/reports/$reportId'));
+    final resp = await _client.get(Uri.parse('$baseUrl/reports/$reportId'), headers: _headers);
     if (resp.statusCode != 200) {
       throw BackendException('Failed to fetch report: HTTP ${resp.statusCode}');
     }
@@ -140,7 +145,7 @@ class BackendService {
   }
 
   Future<List<Paper>> getPapers() async {
-    final resp = await _client.get(Uri.parse('$baseUrl/papers'));
+    final resp = await _client.get(Uri.parse('$baseUrl/papers'), headers: _headers);
     if (resp.statusCode != 200) {
       throw BackendException('Failed to fetch papers: HTTP ${resp.statusCode}');
     }
@@ -149,7 +154,7 @@ class BackendService {
   }
 
   Future<List<NewsItem>> getNews() async {
-    final resp = await _client.get(Uri.parse('$baseUrl/news'));
+    final resp = await _client.get(Uri.parse('$baseUrl/news'), headers: _headers);
     if (resp.statusCode != 200) {
       throw BackendException('Failed to fetch news: HTTP ${resp.statusCode}');
     }

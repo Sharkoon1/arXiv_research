@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     azure_project_endpoint: str
     azure_api_key: str
     azure_api_version: str = "2025-11-15-preview"
+    app_api_key: str
 
     class Config:
         env_file = ".env"
