@@ -140,6 +140,8 @@ async def collect(body: CollectRequest):
 
     papers = [] if isinstance(papers_result, BaseException) else papers_result
     news = [] if isinstance(news_result, BaseException) else news_result
+    paper_ids = [str(p.id) for p in papers]
+    news_ids = [str(n.id) for n in news]
 
     errors = []
     if isinstance(papers_result, BaseException):
@@ -189,8 +191,8 @@ async def collect(body: CollectRequest):
         report = Report(
             name=report_name,
             briefing=briefing,
-            paper_ids=[str(p.id) for p in papers],
-            news_ids=[str(n.id) for n in news],
+            paper_ids=paper_ids,
+            news_ids=news_ids,
         )
         db.add(report)
         await db.commit()
