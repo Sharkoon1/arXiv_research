@@ -5,7 +5,7 @@ class AppConstants {
 
   static const String backendBaseUrl = kDebugMode
       ? 'http://localhost:8000'
-      : 'https://arxiv-research-api.onrender.com';
+      : 'https://arxiv-research.onrender.com';
 
   static const String apiKey = String.fromEnvironment(
     'API_KEY',
