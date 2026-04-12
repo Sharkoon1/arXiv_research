@@ -1,8 +1,11 @@
 import asyncio
 import json
+import logging
 import random
 from datetime import date
 from fastapi import APIRouter, Depends, HTTPException
+
+logger = logging.getLogger(__name__)
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.database import get_db, AsyncSessionLocal
@@ -45,6 +48,13 @@ def _generate_report_name() -> str:
     return f"{prefix} {noun} {suffix}"
 
 
+def _parse_date(raw: str) -> date:
+    try:
+        return date.fromisoformat(raw)
+    except (ValueError, TypeError):
+        return date.today()
+
+
 async def _fetch_papers(limit: int) -> list[Paper]:
     agent = PapersAgent()
     items = await agent.call(limit)
@@ -62,8 +72,8 @@ async def _fetch_papers(limit: int) -> list[Paper]:
                     paper.why_it_matters = item.get("why_it_matters", "")
                     paper.authors = item.get("authors", [])
                     paper.source = item.get("source", "")
-                    paper.published_date = date.fromisoformat(item["published_date"])
-                    paper.category = item.get("category", "other")
+                    paper.published_date = _parse_date(item.get("published_date", ""))
+                    paper.category = item.get("category", "other")[:100]
                     paper.importance_score = item.get("importance_score", 0)
                 else:
                     paper = Paper(
@@ -74,15 +84,16 @@ async def _fetch_papers(limit: int) -> list[Paper]:
                         authors=item.get("authors", []),
                         source=item.get("source", ""),
                         url=item["url"],
-                        published_date=date.fromisoformat(item["published_date"]),
-                        category=item.get("category", "other"),
+                        published_date=_parse_date(item.get("published_date", "")),
+                        category=item.get("category", "other")[:100],
                         importance_score=item.get("importance_score", 0),
                     )
                     db.add(paper)
                 await db.commit()
                 await db.refresh(paper)
                 papers.append(paper)
-            except Exception:
+            except Exception as e:
+                logger.error("Failed to save paper '%s': %s", item.get("title", "?"), e)
                 await db.rollback()
 
     return papers
@@ -103,8 +114,8 @@ async def _fetch_news(limit: int) -> list[NewsItem]:
                     news_item.summary = item.get("summary", "")
                     news_item.why_it_matters = item.get("why_it_matters", "")
                     news_item.source_name = item.get("source_name", "")
-                    news_item.published_date = date.fromisoformat(item["published_date"])
-                    news_item.category = item.get("category", "other")
+                    news_item.published_date = _parse_date(item.get("published_date", ""))
+                    news_item.category = item.get("category", "other")[:100]
                     news_item.importance_score = item.get("importance_score", 0)
                 else:
                     news_item = NewsItem(
@@ -113,15 +124,16 @@ async def _fetch_news(limit: int) -> list[NewsItem]:
                         why_it_matters=item.get("why_it_matters", ""),
                         source_name=item.get("source_name", ""),
                         url=item["url"],
-                        published_date=date.fromisoformat(item["published_date"]),
-                        category=item.get("category", "other"),
+                        published_date=_parse_date(item.get("published_date", "")),
+                        category=item.get("category", "other")[:100],
                         importance_score=item.get("importance_score", 0),
                     )
                     db.add(news_item)
                 await db.commit()
                 await db.refresh(news_item)
                 news.append(news_item)
-            except Exception:
+            except Exception as e:
+                logger.error("Failed to save news '%s': %s", item.get("title", "?"), e)
                 await db.rollback()
 
     return news

@@ -7,10 +7,7 @@ class AppConstants {
       ? 'http://localhost:8000'
       : 'https://arxiv-research.onrender.com';
 
-  static const String apiKey = String.fromEnvironment(
-    'API_KEY',
-    defaultValue: 'Kq9RYdgJXs2ZZ6kPzPkBjhf8eB05O3BFVh-foojtlEw',
-  );
+  static const String apiKey = String.fromEnvironment('API_KEY');
   static const int defaultFetchCount = 25;
   static const int minFetchCount = 5;
   static const int maxFetchCount = 50;
