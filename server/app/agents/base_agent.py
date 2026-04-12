@@ -65,6 +65,47 @@ class BaseAgent:
             return []
         return self._parse_json(raw)
 
+    async def call_with_retry(self, limit: int, max_attempts: int = 3) -> list[dict]:
+        """Call the agent with retries until we have enough items or exhaust attempts."""
+        all_items: list[dict] = []
+        seen_urls: set[str] = set()
+
+        for attempt in range(max_attempts):
+            remaining = limit - len(all_items)
+            if remaining <= 0:
+                break
+
+            if attempt == 0:
+                payload = {"limit": limit}
+            else:
+                payload = {"limit": remaining, "exclude_urls": list(seen_urls)}
+
+            raw = await self._post(json.dumps(payload))
+            if raw is None:
+                break
+
+            try:
+                items = self._parse_json(raw)
+            except (json.JSONDecodeError, ValueError):
+                logger.warning("Agent %s returned invalid JSON on attempt %d", self.agent_name, attempt + 1)
+                break
+
+            new_count = 0
+            for item in items:
+                url = item.get("url", "")
+                if url and url not in seen_urls:
+                    seen_urls.add(url)
+                    all_items.append(item)
+                    new_count += 1
+
+            logger.info("Agent %s attempt %d: got %d new items (%d total, need %d)",
+                        self.agent_name, attempt + 1, new_count, len(all_items), limit)
+
+            if new_count == 0:
+                break
+
+        return all_items
+
     async def call_raw(self, input_data: str) -> Optional[str]:
         """Call the agent and return the raw text response (no JSON parsing)."""
         return await self._post(input_data)

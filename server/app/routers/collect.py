@@ -57,7 +57,7 @@ def _parse_date(raw: str) -> date:
 
 async def _fetch_papers(limit: int) -> list[Paper]:
     agent = PapersAgent()
-    items = await agent.call(limit)
+    items = await agent.call_with_retry(limit)
     papers = []
 
     async with AsyncSessionLocal() as db:
@@ -101,7 +101,7 @@ async def _fetch_papers(limit: int) -> list[Paper]:
 
 async def _fetch_news(limit: int) -> list[NewsItem]:
     agent = NewsAgent()
-    items = await agent.call(limit)
+    items = await agent.call_with_retry(limit)
     news = []
 
     async with AsyncSessionLocal() as db:
