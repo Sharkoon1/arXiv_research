@@ -17,7 +17,9 @@ from app.schemas import (
     NewsItemOut,
 )
 from app.agents.papers_agent import PapersAgent
+from app.agents.papers_ranking_agent import PapersRankingAgent
 from app.agents.news_agent import NewsAgent
+from app.agents.news_ranking_agent import NewsRankingAgent
 from app.agents.summarize_agent import SummarizeAgent
 
 router = APIRouter()
@@ -55,11 +57,53 @@ def _parse_date(raw: str) -> date:
         return date.today()
 
 
+_PAPER_TEMPLATES = [
+    "Find up to {per_category} recent AI research papers published in the last 14 days about large language models, LLM training, LLM inference, and LLM fine-tuning. Search arxiv for recent LLM papers. Return ONLY a JSON array.",
+    "Find up to {per_category} recent AI research papers published in the last 14 days about multimodal AI, vision-language models, image generation, video understanding, and text-to-image. Search arxiv for recent multimodal AI papers. Return ONLY a JSON array.",
+    "Find up to {per_category} recent AI research papers published in the last 14 days about AI reasoning, chain-of-thought, AI agents, tool use, and agentic systems. Search arxiv for recent AI reasoning and agents papers. Return ONLY a JSON array.",
+    "Find up to {per_category} recent AI research papers published in the last 14 days about robotics, embodied AI, AI safety, alignment, and RLHF. Search arxiv for recent robotics and AI safety papers. Return ONLY a JSON array.",
+    "Find up to {per_category} recent AI research papers published in the last 14 days about efficient AI, model compression, novel architectures, mixture of experts, benchmarks, and evaluation. Search arxiv for recent efficient AI and architecture papers. Return ONLY a JSON array.",
+]
+_PAPER_LABELS = ["LLM", "Multimodal", "Reasoning", "Robotics", "Efficiency"]
+
+_NEWS_TEMPLATES = [
+    "Find up to {per_category} recent AI news from the last 14 days about new model launches, major AI model releases, and AI research breakthroughs. Categorize each item using one of: research, industry, policy, product, hardware, funding, safety, partnership, other. Return ONLY a JSON array.",
+    "Find up to {per_category} recent AI news from the last 14 days about AI company announcements, AI product launches, and major AI partnerships. Categorize each item using one of: research, industry, policy, product, hardware, funding, safety, partnership, other. Return ONLY a JSON array.",
+    "Find up to {per_category} recent AI news from the last 14 days about AI regulation, AI policy, AI governance, and AI safety developments. Categorize each item using one of: research, industry, policy, product, hardware, funding, safety, partnership, other. Return ONLY a JSON array.",
+    "Find up to {per_category} recent AI news from the last 14 days about AI chips, AI hardware, GPU developments, and AI infrastructure. Categorize each item using one of: research, industry, policy, product, hardware, funding, safety, partnership, other. Return ONLY a JSON array.",
+    "Find up to {per_category} recent AI news from the last 14 days about AI funding, AI acquisitions, AI startup investments, and AI market developments. Categorize each item using one of: research, industry, policy, product, hardware, funding, safety, partnership, other. Return ONLY a JSON array.",
+]
+_NEWS_LABELS = ["Research", "Industry", "Policy", "Hardware", "Funding"]
+
+NUM_CATEGORIES = 5
+
+
 async def _fetch_papers(limit: int) -> list[Paper]:
     agent = PapersAgent()
-    items = await agent.call_with_retry(limit)
-    papers = []
+    per_category = max(2, -(-limit // NUM_CATEGORIES))  # ceil division, min 2
 
+    # 5 parallel category searches
+    prompts = [t.format(per_category=per_category) for t in _PAPER_TEMPLATES]
+    raw_results = await asyncio.gather(
+        *[agent.call_raw(p) for p in prompts],
+        return_exceptions=True,
+    )
+
+    # Build ranking input
+    ranking_input = f"Limit: {limit}. "
+    for label, result in zip(_PAPER_LABELS, raw_results):
+        text = result if isinstance(result, str) else "[]"
+        ranking_input += f"{label} papers: {text} "
+
+    # Rank and deduplicate
+    ranking_agent = PapersRankingAgent()
+    ranking_raw = await ranking_agent.call_raw(ranking_input)
+    if ranking_raw is None:
+        return []
+    items = ranking_agent._parse_json(ranking_raw)
+
+    # Save to DB
+    papers = []
     async with AsyncSessionLocal() as db:
         for item in items:
             try:
@@ -101,9 +145,30 @@ async def _fetch_papers(limit: int) -> list[Paper]:
 
 async def _fetch_news(limit: int) -> list[NewsItem]:
     agent = NewsAgent()
-    items = await agent.call_with_retry(limit)
-    news = []
+    per_category = max(2, -(-limit // NUM_CATEGORIES))  # ceil division, min 2
 
+    # 5 parallel category searches
+    prompts = [t.format(per_category=per_category) for t in _NEWS_TEMPLATES]
+    raw_results = await asyncio.gather(
+        *[agent.call_raw(p) for p in prompts],
+        return_exceptions=True,
+    )
+
+    # Build ranking input
+    ranking_input = f"Limit: {limit}. "
+    for label, result in zip(_NEWS_LABELS, raw_results):
+        text = result if isinstance(result, str) else "[]"
+        ranking_input += f"{label} news: {text} "
+
+    # Rank and deduplicate
+    ranking_agent = NewsRankingAgent()
+    ranking_raw = await ranking_agent.call_raw(ranking_input)
+    if ranking_raw is None:
+        return []
+    items = ranking_agent._parse_json(ranking_raw)
+
+    # Save to DB
+    news = []
     async with AsyncSessionLocal() as db:
         for item in items:
             try:
