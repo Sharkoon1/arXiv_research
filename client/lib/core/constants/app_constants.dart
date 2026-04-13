@@ -16,43 +16,43 @@ class AppConstants {
 
   static const List<String> paperCategories = [
     'LLM',
-    'Multimodal',
-    'Reasoning & Agents',
-    'Robotics & Safety',
-    'Efficiency & Architecture',
+    'Machine Learning',
+    'Reasoning',
+    'Agents',
+    'Optimization',
+    'Architecture',
+    'Robotics',
     'Computer Vision',
-    'NLP',
-    'Reinforcement Learning',
-    'Generative Models',
-    'Quantization & Pruning',
+    'Safety',
+    'Benchmark',
   ];
 
   static const List<String> defaultPaperCategories = [
     'LLM',
-    'Multimodal',
-    'Reasoning & Agents',
-    'Robotics & Safety',
-    'Efficiency & Architecture',
+    'Machine Learning',
+    'Reasoning',
+    'Agents',
+    'Optimization',
   ];
 
   static const List<String> newsCategories = [
-    'Model Releases',
-    'Industry & Products',
-    'Policy & Regulation',
-    'Hardware & Infrastructure',
-    'Funding & Acquisitions',
-    'Open Source',
-    'Startups',
-    'Big Tech',
-    'Research Breakthroughs',
-    'AI Ethics',
+    'Model Release',
+    'Product',
+    'Industry',
+    'Funding',
+    'Partnership',
+    'Hardware',
+    'Policy',
+    'Research',
+    'Safety',
+    'Job Market',
   ];
 
   static const List<String> defaultNewsCategories = [
-    'Model Releases',
-    'Industry & Products',
-    'Policy & Regulation',
-    'Hardware & Infrastructure',
-    'Funding & Acquisitions',
+    'Model Release',
+    'Product',
+    'Industry',
+    'Funding',
+    'Partnership',
   ];
 }

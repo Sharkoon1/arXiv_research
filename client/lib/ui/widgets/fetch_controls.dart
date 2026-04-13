@@ -352,45 +352,70 @@ class _CategoryChips extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selected = ref.watch(selectedProvider);
-    return Wrap(
-      spacing: 6,
-      runSpacing: 4,
-      children: allCategories.map((category) {
-        final isSelected = selected.contains(category);
-        return FilterChip(
-          label: Text(
-            category,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-              color: isSelected ? Colors.white : AppColors.textSecondary,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Selected chips (removable)
+        Wrap(
+          spacing: 6,
+          runSpacing: 4,
+          children: selected.map((category) {
+            return Chip(
+              label: Text(
+                category,
+                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white),
+              ),
+              deleteIcon: const Icon(Icons.close, size: 14, color: Colors.white70),
+              onDeleted: enabled && selected.length > 1
+                  ? () {
+                      ref.read(selectedProvider.notifier).state =
+                          selected.where((c) => c != category).toSet();
+                    }
+                  : null,
+              backgroundColor: AppColors.primary,
+              padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 0),
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              visualDensity: VisualDensity.compact,
+              side: BorderSide.none,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            );
+          }).toList(),
+        ),
+        // Add button (dropdown)
+        if (enabled && selected.length < 5) ...[
+          const SizedBox(height: 6),
+          PopupMenuButton<String>(
+            onSelected: (category) {
+              final current = ref.read(selectedProvider);
+              if (current.length < 5) {
+                ref.read(selectedProvider.notifier).state = {...current, category};
+              }
+            },
+            itemBuilder: (_) => allCategories
+                .where((c) => !selected.contains(c))
+                .map((c) => PopupMenuItem(value: c, child: Text(c, style: const TextStyle(fontSize: 13))))
+                .toList(),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.add, size: 14, color: AppColors.primary),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Add category',
+                    style: TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w500),
+                  ),
+                ],
+              ),
             ),
           ),
-          selected: isSelected,
-          onSelected: enabled
-              ? (value) {
-                  final current = ref.read(selectedProvider);
-                  if (value) {
-                    ref.read(selectedProvider.notifier).state = {...current, category};
-                  } else if (current.length > 1) {
-                    ref.read(selectedProvider.notifier).state =
-                        current.where((c) => c != category).toSet();
-                  }
-                }
-              : null,
-          selectedColor: AppColors.primary,
-          backgroundColor: AppColors.primary.withValues(alpha: 0.08),
-          checkmarkColor: Colors.white,
-          showCheckmark: false,
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          visualDensity: VisualDensity.compact,
-          side: BorderSide(
-            color: isSelected ? AppColors.primary : AppColors.primary.withValues(alpha: 0.2),
-          ),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        );
-      }).toList(),
+        ],
+      ],
     );
   }
 }
