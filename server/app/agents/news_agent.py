@@ -1,5 +1,5 @@
-from app.agents.base_agent import BaseAgent
+from app.agents.workflow_agent import WorkflowAgent
 
 
-class NewsAgent(BaseAgent):
-    agent_name = "research-agent-news"
+class NewsAgent(WorkflowAgent):
+    agent_name = "research-news-workflow"
