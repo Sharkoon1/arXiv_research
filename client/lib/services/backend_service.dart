@@ -72,6 +72,8 @@ class BackendService {
   Future<CollectResult> startCollection({
     required int papersLimit,
     required int newsLimit,
+    List<String> paperCategories = const [],
+    List<String> newsCategories = const [],
   }) async {
     final resp = await _client.post(
       Uri.parse('$baseUrl/collect'),
@@ -79,6 +81,8 @@ class BackendService {
       body: jsonEncode({
         'papers_limit': papersLimit.clamp(1, 50),
         'news_limit': newsLimit.clamp(1, 50),
+        if (paperCategories.isNotEmpty) 'paper_categories': paperCategories,
+        if (newsCategories.isNotEmpty) 'news_categories': newsCategories,
       }),
     ).timeout(const Duration(seconds: 180));
     if (resp.statusCode != 200) {

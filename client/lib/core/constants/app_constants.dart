@@ -13,4 +13,46 @@ class AppConstants {
   static const int maxFetchCount = 50;
 
   static const String prefsKeyReadIds = 'read_paper_ids';
+
+  static const List<String> paperCategories = [
+    'LLM',
+    'Multimodal',
+    'Reasoning & Agents',
+    'Robotics & Safety',
+    'Efficiency & Architecture',
+    'Computer Vision',
+    'NLP',
+    'Reinforcement Learning',
+    'Generative Models',
+    'Quantization & Pruning',
+  ];
+
+  static const List<String> defaultPaperCategories = [
+    'LLM',
+    'Multimodal',
+    'Reasoning & Agents',
+    'Robotics & Safety',
+    'Efficiency & Architecture',
+  ];
+
+  static const List<String> newsCategories = [
+    'Model Releases',
+    'Industry & Products',
+    'Policy & Regulation',
+    'Hardware & Infrastructure',
+    'Funding & Acquisitions',
+    'Open Source',
+    'Startups',
+    'Big Tech',
+    'Research Breakthroughs',
+    'AI Ethics',
+  ];
+
+  static const List<String> defaultNewsCategories = [
+    'Model Releases',
+    'Industry & Products',
+    'Policy & Regulation',
+    'Hardware & Infrastructure',
+    'Funding & Acquisitions',
+  ];
 }

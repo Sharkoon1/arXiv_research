@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../core/constants/app_constants.dart';
 import '../models/news_item.dart';
 import '../models/paper.dart';
 import '../services/backend_service.dart';
@@ -29,6 +30,17 @@ final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.dark);
 
 final papersFetchLimitProvider = StateProvider<int>((ref) => 25);
 final newsFetchLimitProvider = StateProvider<int>((ref) => 25);
+
+// ---------------------------------------------------------------------------
+// Category selection
+// ---------------------------------------------------------------------------
+
+final selectedPaperCategoriesProvider = StateProvider<Set<String>>(
+  (ref) => {...AppConstants.defaultPaperCategories},
+);
+final selectedNewsCategoriesProvider = StateProvider<Set<String>>(
+  (ref) => {...AppConstants.defaultNewsCategories},
+);
 
 // ---------------------------------------------------------------------------
 // Briefing

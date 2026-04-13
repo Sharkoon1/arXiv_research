@@ -8,6 +8,8 @@ from pydantic import BaseModel
 class CollectRequest(BaseModel):
     papers_limit: int = 25
     news_limit: int = 25
+    paper_categories: list[str] = []
+    news_categories: list[str] = []
 
 
 class CollectResultResponse(BaseModel):

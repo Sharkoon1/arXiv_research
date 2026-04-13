@@ -3,6 +3,7 @@ import json
 import logging
 import random
 from datetime import date
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 
 logger = logging.getLogger(__name__)
@@ -57,41 +58,55 @@ def _parse_date(raw: str) -> date:
         return date.today()
 
 
-_PAPER_TEMPLATES = [
-    "Find up to {per_category} recent AI research papers published in the last 14 days about large language models, LLM training, LLM inference, and LLM fine-tuning. Search arxiv for recent LLM papers. Return ONLY a JSON array.",
-    "Find up to {per_category} recent AI research papers published in the last 14 days about multimodal AI, vision-language models, image generation, video understanding, and text-to-image. Search arxiv for recent multimodal AI papers. Return ONLY a JSON array.",
-    "Find up to {per_category} recent AI research papers published in the last 14 days about AI reasoning, chain-of-thought, AI agents, tool use, and agentic systems. Search arxiv for recent AI reasoning and agents papers. Return ONLY a JSON array.",
-    "Find up to {per_category} recent AI research papers published in the last 14 days about robotics, embodied AI, AI safety, alignment, and RLHF. Search arxiv for recent robotics and AI safety papers. Return ONLY a JSON array.",
-    "Find up to {per_category} recent AI research papers published in the last 14 days about efficient AI, model compression, novel architectures, mixture of experts, benchmarks, and evaluation. Search arxiv for recent efficient AI and architecture papers. Return ONLY a JSON array.",
-]
-_PAPER_LABELS = ["LLM", "Multimodal", "Reasoning", "Robotics", "Efficiency"]
+PAPER_CATEGORY_PROMPTS = {
+    "LLM": "Find up to {n} recent AI research papers published in the last 14 days about large language models, LLM training, LLM inference, and LLM fine-tuning. Search arxiv for recent LLM papers. Return ONLY a JSON array.",
+    "Multimodal": "Find up to {n} recent AI research papers published in the last 14 days about multimodal AI, vision-language models, image generation, video understanding, and text-to-image. Search arxiv for recent multimodal AI papers. Return ONLY a JSON array.",
+    "Reasoning & Agents": "Find up to {n} recent AI research papers published in the last 14 days about AI reasoning, chain-of-thought, AI agents, tool use, and agentic systems. Search arxiv for recent AI reasoning and agents papers. Return ONLY a JSON array.",
+    "Robotics & Safety": "Find up to {n} recent AI research papers published in the last 14 days about robotics, embodied AI, AI safety, alignment, and RLHF. Search arxiv for recent robotics and AI safety papers. Return ONLY a JSON array.",
+    "Efficiency & Architecture": "Find up to {n} recent AI research papers published in the last 14 days about efficient AI, model compression, novel architectures, mixture of experts, benchmarks, and evaluation. Search arxiv for recent efficient AI and architecture papers. Return ONLY a JSON array.",
+    "Computer Vision": "Find up to {n} recent AI research papers published in the last 14 days about computer vision, object detection, image segmentation, 3D vision, and visual representation learning. Search arxiv for recent computer vision papers. Return ONLY a JSON array.",
+    "NLP": "Find up to {n} recent AI research papers published in the last 14 days about natural language processing, text classification, machine translation, summarization, and information extraction. Search arxiv for recent NLP papers. Return ONLY a JSON array.",
+    "Reinforcement Learning": "Find up to {n} recent AI research papers published in the last 14 days about reinforcement learning, policy optimization, multi-agent RL, and reward modeling. Search arxiv for recent reinforcement learning papers. Return ONLY a JSON array.",
+    "Generative Models": "Find up to {n} recent AI research papers published in the last 14 days about diffusion models, GANs, VAEs, flow matching, and generative AI architectures. Search arxiv for recent generative model papers. Return ONLY a JSON array.",
+    "Quantization & Pruning": "Find up to {n} recent AI research papers published in the last 14 days about model quantization, pruning, distillation, and neural network compression techniques. Search arxiv for recent quantization and pruning papers. Return ONLY a JSON array.",
+}
 
-_NEWS_TEMPLATES = [
-    "Find up to {per_category} recent AI news from the last 14 days about new model launches, major AI model releases, and AI research breakthroughs. Categorize each item using one of: research, industry, policy, product, hardware, funding, safety, partnership, other. Return ONLY a JSON array.",
-    "Find up to {per_category} recent AI news from the last 14 days about AI company announcements, AI product launches, and major AI partnerships. Categorize each item using one of: research, industry, policy, product, hardware, funding, safety, partnership, other. Return ONLY a JSON array.",
-    "Find up to {per_category} recent AI news from the last 14 days about AI regulation, AI policy, AI governance, and AI safety developments. Categorize each item using one of: research, industry, policy, product, hardware, funding, safety, partnership, other. Return ONLY a JSON array.",
-    "Find up to {per_category} recent AI news from the last 14 days about AI chips, AI hardware, GPU developments, and AI infrastructure. Categorize each item using one of: research, industry, policy, product, hardware, funding, safety, partnership, other. Return ONLY a JSON array.",
-    "Find up to {per_category} recent AI news from the last 14 days about AI funding, AI acquisitions, AI startup investments, and AI market developments. Categorize each item using one of: research, industry, policy, product, hardware, funding, safety, partnership, other. Return ONLY a JSON array.",
-]
-_NEWS_LABELS = ["Research", "Industry", "Policy", "Hardware", "Funding"]
+DEFAULT_PAPER_CATEGORIES = ["LLM", "Multimodal", "Reasoning & Agents", "Robotics & Safety", "Efficiency & Architecture"]
 
-NUM_CATEGORIES = 5
+NEWS_CATEGORY_PROMPTS = {
+    "Model Releases": "Find up to {n} recent AI news from the last 14 days about new model launches, major AI model releases, and AI research breakthroughs. Categorize each item using one of: research, industry, policy, product, hardware, funding, safety, partnership, other. Return ONLY a JSON array.",
+    "Industry & Products": "Find up to {n} recent AI news from the last 14 days about AI company announcements, AI product launches, and major AI partnerships. Categorize each item using one of: research, industry, policy, product, hardware, funding, safety, partnership, other. Return ONLY a JSON array.",
+    "Policy & Regulation": "Find up to {n} recent AI news from the last 14 days about AI regulation, AI policy, AI governance, and AI safety developments. Categorize each item using one of: research, industry, policy, product, hardware, funding, safety, partnership, other. Return ONLY a JSON array.",
+    "Hardware & Infrastructure": "Find up to {n} recent AI news from the last 14 days about AI chips, AI hardware, GPU developments, and AI infrastructure. Categorize each item using one of: research, industry, policy, product, hardware, funding, safety, partnership, other. Return ONLY a JSON array.",
+    "Funding & Acquisitions": "Find up to {n} recent AI news from the last 14 days about AI funding, AI acquisitions, AI startup investments, and AI market developments. Categorize each item using one of: research, industry, policy, product, hardware, funding, safety, partnership, other. Return ONLY a JSON array.",
+    "Open Source": "Find up to {n} recent AI news from the last 14 days about open source AI projects, open weights model releases, and open source AI tools and frameworks. Categorize each item using one of: research, industry, policy, product, hardware, funding, safety, partnership, other. Return ONLY a JSON array.",
+    "Startups": "Find up to {n} recent AI news from the last 14 days about AI startups, new AI companies, and emerging AI ventures. Categorize each item using one of: research, industry, policy, product, hardware, funding, safety, partnership, other. Return ONLY a JSON array.",
+    "Big Tech": "Find up to {n} recent AI news from the last 14 days about AI developments at Google, OpenAI, Meta, Microsoft, Apple, Amazon, and other major tech companies. Categorize each item using one of: research, industry, policy, product, hardware, funding, safety, partnership, other. Return ONLY a JSON array.",
+    "Research Breakthroughs": "Find up to {n} recent AI news from the last 14 days about major scientific breakthroughs, record-setting benchmarks, and paradigm-shifting AI research results. Categorize each item using one of: research, industry, policy, product, hardware, funding, safety, partnership, other. Return ONLY a JSON array.",
+    "AI Ethics": "Find up to {n} recent AI news from the last 14 days about AI ethics, bias in AI, responsible AI development, and AI societal impact. Categorize each item using one of: research, industry, policy, product, hardware, funding, safety, partnership, other. Return ONLY a JSON array.",
+}
+
+DEFAULT_NEWS_CATEGORIES = ["Model Releases", "Industry & Products", "Policy & Regulation", "Hardware & Infrastructure", "Funding & Acquisitions"]
 
 
-async def _fetch_papers(limit: int) -> list[Paper]:
+async def _fetch_papers(limit: int, categories: Optional[list[str]] = None) -> list[Paper]:
     agent = PapersAgent()
-    per_category = max(2, -(-limit // NUM_CATEGORIES))  # ceil division, min 2
+    selected = categories if categories else DEFAULT_PAPER_CATEGORIES
+    selected = [c for c in selected if c in PAPER_CATEGORY_PROMPTS]
+    if not selected:
+        selected = DEFAULT_PAPER_CATEGORIES
+    per_category = max(2, -(-limit // len(selected)))
 
-    # 5 parallel category searches
-    prompts = [t.format(per_category=per_category) for t in _PAPER_TEMPLATES]
+    # Parallel category searches
+    prompts = [(c, PAPER_CATEGORY_PROMPTS[c].format(n=per_category)) for c in selected]
     raw_results = await asyncio.gather(
-        *[agent.call_raw(p) for p in prompts],
+        *[agent.call_raw(p) for _, p in prompts],
         return_exceptions=True,
     )
 
     # Build ranking input
     ranking_input = f"Limit: {limit}. "
-    for label, result in zip(_PAPER_LABELS, raw_results):
+    for (label, _), result in zip(prompts, raw_results):
         text = result if isinstance(result, str) else "[]"
         ranking_input += f"{label} papers: {text} "
 
@@ -143,20 +158,24 @@ async def _fetch_papers(limit: int) -> list[Paper]:
     return papers
 
 
-async def _fetch_news(limit: int) -> list[NewsItem]:
+async def _fetch_news(limit: int, categories: Optional[list[str]] = None) -> list[NewsItem]:
     agent = NewsAgent()
-    per_category = max(2, -(-limit // NUM_CATEGORIES))  # ceil division, min 2
+    selected = categories if categories else DEFAULT_NEWS_CATEGORIES
+    selected = [c for c in selected if c in NEWS_CATEGORY_PROMPTS]
+    if not selected:
+        selected = DEFAULT_NEWS_CATEGORIES
+    per_category = max(2, -(-limit // len(selected)))
 
-    # 5 parallel category searches
-    prompts = [t.format(per_category=per_category) for t in _NEWS_TEMPLATES]
+    # Parallel category searches
+    prompts = [(c, NEWS_CATEGORY_PROMPTS[c].format(n=per_category)) for c in selected]
     raw_results = await asyncio.gather(
-        *[agent.call_raw(p) for p in prompts],
+        *[agent.call_raw(p) for _, p in prompts],
         return_exceptions=True,
     )
 
     # Build ranking input
     ranking_input = f"Limit: {limit}. "
-    for label, result in zip(_NEWS_LABELS, raw_results):
+    for (label, _), result in zip(prompts, raw_results):
         text = result if isinstance(result, str) else "[]"
         ranking_input += f"{label} news: {text} "
 
@@ -210,8 +229,8 @@ async def collect(body: CollectRequest):
     news_limit = min(max(1, body.news_limit), 50)
 
     papers_result, news_result = await asyncio.gather(
-        _fetch_papers(papers_limit),
-        _fetch_news(news_limit),
+        _fetch_papers(papers_limit, body.paper_categories or None),
+        _fetch_news(news_limit, body.news_categories or None),
         return_exceptions=True,
     )
 

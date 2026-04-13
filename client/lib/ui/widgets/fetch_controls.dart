@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import '../../providers/providers.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
@@ -42,12 +43,24 @@ class FetchControls extends ConsumerWidget {
             enabled: !isLoading,
             onChanged: (v) => ref.read(papersFetchLimitProvider.notifier).state = v,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
+          _CategoryChips(
+            allCategories: AppConstants.paperCategories,
+            selectedProvider: selectedPaperCategoriesProvider,
+            enabled: !isLoading,
+          ),
+          const SizedBox(height: 16),
           _LimitRow(
             label: 'News limit',
             count: newsLimit,
             enabled: !isLoading,
             onChanged: (v) => ref.read(newsFetchLimitProvider.notifier).state = v,
+          ),
+          const SizedBox(height: 8),
+          _CategoryChips(
+            allCategories: AppConstants.newsCategories,
+            selectedProvider: selectedNewsCategoriesProvider,
+            enabled: !isLoading,
           ),
           const SizedBox(height: 16),
           SizedBox(
@@ -62,12 +75,17 @@ class FetchControls extends ConsumerWidget {
 
                 ref.read(papersProvider.notifier).setLoading();
                 ref.read(newsProvider.notifier).setLoading();
+                WakelockPlus.enable();
                 try {
+                  final paperCats = ref.read(selectedPaperCategoriesProvider).toList();
+                  final newsCats = ref.read(selectedNewsCategoriesProvider).toList();
                   final result = await ref
                       .read(backendServiceProvider)
                       .startCollection(
                         papersLimit: papersLimit,
                         newsLimit: newsLimit,
+                        paperCategories: paperCats,
+                        newsCategories: newsCats,
                       );
 
                   // Papers & news done
@@ -90,12 +108,14 @@ class FetchControls extends ConsumerWidget {
                   if (result.errors.isNotEmpty) {
                     ref.read(papersProvider.notifier).setError(result.errors.join('\n'));
                   }
+                  WakelockPlus.disable();
                 } catch (e) {
                   ref.read(papersAgentStatusProvider.notifier).state = AgentStatus.error;
                   ref.read(newsAgentStatusProvider.notifier).state = AgentStatus.error;
                   ref.read(summarizeAgentStatusProvider.notifier).state = AgentStatus.error;
                   ref.read(papersProvider.notifier).setError(e.toString());
                   ref.read(newsProvider.notifier).setError(e.toString());
+                  WakelockPlus.disable();
                 }
               },
             ),
@@ -314,6 +334,63 @@ class _LimitRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _CategoryChips extends ConsumerWidget {
+  final List<String> allCategories;
+  final StateProvider<Set<String>> selectedProvider;
+  final bool enabled;
+
+  const _CategoryChips({
+    required this.allCategories,
+    required this.selectedProvider,
+    required this.enabled,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selected = ref.watch(selectedProvider);
+    return Wrap(
+      spacing: 6,
+      runSpacing: 4,
+      children: allCategories.map((category) {
+        final isSelected = selected.contains(category);
+        return FilterChip(
+          label: Text(
+            category,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+              color: isSelected ? Colors.white : AppColors.textSecondary,
+            ),
+          ),
+          selected: isSelected,
+          onSelected: enabled
+              ? (value) {
+                  final current = ref.read(selectedProvider);
+                  if (value) {
+                    ref.read(selectedProvider.notifier).state = {...current, category};
+                  } else if (current.length > 1) {
+                    ref.read(selectedProvider.notifier).state =
+                        current.where((c) => c != category).toSet();
+                  }
+                }
+              : null,
+          selectedColor: AppColors.primary,
+          backgroundColor: AppColors.primary.withValues(alpha: 0.08),
+          checkmarkColor: Colors.white,
+          showCheckmark: false,
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          visualDensity: VisualDensity.compact,
+          side: BorderSide(
+            color: isSelected ? AppColors.primary : AppColors.primary.withValues(alpha: 0.2),
+          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        );
+      }).toList(),
     );
   }
 }

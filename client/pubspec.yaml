@@ -42,6 +42,7 @@ dependencies:
 
   # Markdown rendering
   flutter_markdown: ^0.7.4+3
+  wakelock_plus: ^1.5.1
 
 dev_dependencies:
   flutter_test:
