@@ -1,5 +1,5 @@
-from app.agents.base_agent import BaseAgent
+from app.agents.workflow_agent import WorkflowAgent
 
 
-class PapersAgent(BaseAgent):
-    agent_name = "research-agent-papers"
+class PapersAgent(WorkflowAgent):
+    agent_name = "research-paper-workflow"

@@ -14,3 +14,5 @@ services:
         sync: false
       - key: AZURE_API_VERSION
         value: 2025-11-15-preview
+      - key: SERVER_BASE_URL
+        value: https://arxiv-research.onrender.com
