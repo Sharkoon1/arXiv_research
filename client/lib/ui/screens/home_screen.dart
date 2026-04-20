@@ -143,7 +143,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     ref.read(papersProvider.notifier).setLoading();
     ref.read(newsProvider.notifier).setLoading();
     try {
-      final detail = await ref.read(backendServiceProvider).getReport(reportId);
+      final detail = await ref.read(reportsServiceProvider).fetchById(reportId);
       ref.read(papersProvider.notifier).setPapers(detail.papers);
       ref.read(newsProvider.notifier).setNews(detail.news);
       ref.read(briefingProvider.notifier).state = detail.briefing;

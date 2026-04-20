@@ -23,11 +23,15 @@ mixin _$NewsItem {
   String get id => throw _privateConstructorUsedError;
   String get title => throw _privateConstructorUsedError;
   String get summary => throw _privateConstructorUsedError;
+  @JsonKey(name: 'why_it_matters')
   String get whyItMatters => throw _privateConstructorUsedError;
+  @JsonKey(name: 'source_name')
   String get sourceName => throw _privateConstructorUsedError;
   String get url => throw _privateConstructorUsedError;
+  @JsonKey(name: 'published_date')
   String get publishedDate => throw _privateConstructorUsedError;
   String get category => throw _privateConstructorUsedError;
+  @JsonKey(name: 'importance_score')
   int get importanceScore => throw _privateConstructorUsedError;
 
   /// Serializes this NewsItem to a JSON map.
@@ -49,12 +53,12 @@ abstract class $NewsItemCopyWith<$Res> {
       {String id,
       String title,
       String summary,
-      String whyItMatters,
-      String sourceName,
+      @JsonKey(name: 'why_it_matters') String whyItMatters,
+      @JsonKey(name: 'source_name') String sourceName,
       String url,
-      String publishedDate,
+      @JsonKey(name: 'published_date') String publishedDate,
       String category,
-      int importanceScore});
+      @JsonKey(name: 'importance_score') int importanceScore});
 }
 
 /// @nodoc
@@ -135,12 +139,12 @@ abstract class _$$NewsItemImplCopyWith<$Res>
       {String id,
       String title,
       String summary,
-      String whyItMatters,
-      String sourceName,
+      @JsonKey(name: 'why_it_matters') String whyItMatters,
+      @JsonKey(name: 'source_name') String sourceName,
       String url,
-      String publishedDate,
+      @JsonKey(name: 'published_date') String publishedDate,
       String category,
-      int importanceScore});
+      @JsonKey(name: 'importance_score') int importanceScore});
 }
 
 /// @nodoc
@@ -214,12 +218,12 @@ class _$NewsItemImpl extends _NewsItem {
       {required this.id,
       required this.title,
       required this.summary,
-      required this.whyItMatters,
-      required this.sourceName,
+      @JsonKey(name: 'why_it_matters') required this.whyItMatters,
+      @JsonKey(name: 'source_name') required this.sourceName,
       required this.url,
-      required this.publishedDate,
+      @JsonKey(name: 'published_date') required this.publishedDate,
       required this.category,
-      required this.importanceScore})
+      @JsonKey(name: 'importance_score') required this.importanceScore})
       : super._();
 
   factory _$NewsItemImpl.fromJson(Map<String, dynamic> json) =>
@@ -232,16 +236,20 @@ class _$NewsItemImpl extends _NewsItem {
   @override
   final String summary;
   @override
+  @JsonKey(name: 'why_it_matters')
   final String whyItMatters;
   @override
+  @JsonKey(name: 'source_name')
   final String sourceName;
   @override
   final String url;
   @override
+  @JsonKey(name: 'published_date')
   final String publishedDate;
   @override
   final String category;
   @override
+  @JsonKey(name: 'importance_score')
   final int importanceScore;
 
   @override
@@ -296,11 +304,12 @@ abstract class _NewsItem extends NewsItem {
       {required final String id,
       required final String title,
       required final String summary,
-      required final String whyItMatters,
-      required final String sourceName,
+      @JsonKey(name: 'why_it_matters') required final String whyItMatters,
+      @JsonKey(name: 'source_name') required final String sourceName,
       required final String url,
-      required final String publishedDate,
+      @JsonKey(name: 'published_date') required final String publishedDate,
       required final String category,
+      @JsonKey(name: 'importance_score')
       required final int importanceScore}) = _$NewsItemImpl;
   const _NewsItem._() : super._();
 
@@ -314,16 +323,20 @@ abstract class _NewsItem extends NewsItem {
   @override
   String get summary;
   @override
+  @JsonKey(name: 'why_it_matters')
   String get whyItMatters;
   @override
+  @JsonKey(name: 'source_name')
   String get sourceName;
   @override
   String get url;
   @override
+  @JsonKey(name: 'published_date')
   String get publishedDate;
   @override
   String get category;
   @override
+  @JsonKey(name: 'importance_score')
   int get importanceScore;
 
   /// Create a copy of NewsItem

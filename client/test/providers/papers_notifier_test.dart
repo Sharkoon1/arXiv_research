@@ -1,13 +1,18 @@
+import 'package:arxiv_research/models/news_item.dart';
+import 'package:arxiv_research/models/paper.dart';
+import 'package:arxiv_research/providers/providers.dart';
+import 'package:arxiv_research/core/utils/api_exception.dart';
+import 'package:arxiv_research/services/news_service.dart';
+import 'package:arxiv_research/services/papers_service.dart';
+import 'package:arxiv_research/services/reports_service.dart';
+import 'package:arxiv_research/services/storage_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:arxiv_research/models/paper.dart';
-import 'package:arxiv_research/models/news_item.dart';
-import 'package:arxiv_research/providers/providers.dart';
-import 'package:arxiv_research/services/backend_service.dart';
-import 'package:arxiv_research/services/storage_service.dart';
 
-class MockBackendService extends Mock implements BackendService {}
+class MockPapersService extends Mock implements PapersService {}
+class MockNewsService extends Mock implements NewsService {}
+class MockReportsService extends Mock implements ReportsService {}
 class MockStorageService extends Mock implements StorageService {}
 
 const _paper = Paper(
@@ -37,38 +42,58 @@ const _news = NewsItem(
 );
 
 ProviderContainer makeContainer({
-  required BackendService backend,
+  required PapersService papers,
+  required NewsService news,
+  required ReportsService reports,
   required StorageService storage,
 }) {
   return ProviderContainer(overrides: [
-    backendServiceProvider.overrideWithValue(backend),
+    papersServiceProvider.overrideWithValue(papers),
+    newsServiceProvider.overrideWithValue(news),
+    reportsServiceProvider.overrideWithValue(reports),
     storageServiceProvider.overrideWithValue(storage),
   ]);
 }
 
 void main() {
-  late MockBackendService mockBackend;
+  late MockPapersService mockPapers;
+  late MockNewsService mockNews;
+  late MockReportsService mockReports;
   late MockStorageService mockStorage;
 
   setUp(() {
-    mockBackend = MockBackendService();
+    mockPapers = MockPapersService();
+    mockNews = MockNewsService();
+    mockReports = MockReportsService();
     mockStorage = MockStorageService();
 
     when(() => mockStorage.loadReadIds()).thenAnswer((_) async => {});
-    when(() => mockBackend.dispose()).thenReturn(null);
+    when(() => mockPapers.dispose()).thenReturn(null);
+    when(() => mockNews.dispose()).thenReturn(null);
+    when(() => mockReports.dispose()).thenReturn(null);
   });
 
   group('PapersNotifier', () {
     test('starts in idle state', () {
-      final container = makeContainer(backend: mockBackend, storage: mockStorage);
+      final container = makeContainer(
+        papers: mockPapers,
+        news: mockNews,
+        reports: mockReports,
+        storage: mockStorage,
+      );
       addTearDown(container.dispose);
       expect(container.read(papersProvider).status, FetchStatus.idle);
     });
 
     test('loadPapers transitions to success', () async {
-      when(() => mockBackend.getPapers()).thenAnswer((_) async => [_paper]);
+      when(() => mockPapers.fetchAll()).thenAnswer((_) async => [_paper]);
 
-      final container = makeContainer(backend: mockBackend, storage: mockStorage);
+      final container = makeContainer(
+        papers: mockPapers,
+        news: mockNews,
+        reports: mockReports,
+        storage: mockStorage,
+      );
       addTearDown(container.dispose);
 
       await container.read(papersProvider.notifier).loadPapers();
@@ -79,10 +104,15 @@ void main() {
     });
 
     test('loadPapers transitions to error on exception', () async {
-      when(() => mockBackend.getPapers())
-          .thenThrow(const BackendException('network error'));
+      when(() => mockPapers.fetchAll())
+          .thenThrow(const ApiException('network error'));
 
-      final container = makeContainer(backend: mockBackend, storage: mockStorage);
+      final container = makeContainer(
+        papers: mockPapers,
+        news: mockNews,
+        reports: mockReports,
+        storage: mockStorage,
+      );
       addTearDown(container.dispose);
 
       await container.read(papersProvider.notifier).loadPapers();
@@ -95,9 +125,14 @@ void main() {
 
   group('NewsNotifier', () {
     test('loadNews transitions to success', () async {
-      when(() => mockBackend.getNews()).thenAnswer((_) async => [_news]);
+      when(() => mockNews.fetchAll()).thenAnswer((_) async => [_news]);
 
-      final container = makeContainer(backend: mockBackend, storage: mockStorage);
+      final container = makeContainer(
+        papers: mockPapers,
+        news: mockNews,
+        reports: mockReports,
+        storage: mockStorage,
+      );
       addTearDown(container.dispose);
 
       await container.read(newsProvider.notifier).loadNews();
@@ -112,7 +147,12 @@ void main() {
     test('markRead adds id and persists', () async {
       when(() => mockStorage.saveReadIds(any())).thenAnswer((_) async {});
 
-      final container = makeContainer(backend: mockBackend, storage: mockStorage);
+      final container = makeContainer(
+        papers: mockPapers,
+        news: mockNews,
+        reports: mockReports,
+        storage: mockStorage,
+      );
       addTearDown(container.dispose);
 
       await container.read(readStatusProvider.notifier).markRead('id-1');

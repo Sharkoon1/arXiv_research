@@ -11,12 +11,12 @@ _$NewsItemImpl _$$NewsItemImplFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       title: json['title'] as String,
       summary: json['summary'] as String,
-      whyItMatters: json['whyItMatters'] as String,
-      sourceName: json['sourceName'] as String,
+      whyItMatters: json['why_it_matters'] as String,
+      sourceName: json['source_name'] as String,
       url: json['url'] as String,
-      publishedDate: json['publishedDate'] as String,
+      publishedDate: json['published_date'] as String,
       category: json['category'] as String,
-      importanceScore: (json['importanceScore'] as num).toInt(),
+      importanceScore: (json['importance_score'] as num).toInt(),
     );
 
 Map<String, dynamic> _$$NewsItemImplToJson(_$NewsItemImpl instance) =>
@@ -24,10 +24,10 @@ Map<String, dynamic> _$$NewsItemImplToJson(_$NewsItemImpl instance) =>
       'id': instance.id,
       'title': instance.title,
       'summary': instance.summary,
-      'whyItMatters': instance.whyItMatters,
-      'sourceName': instance.sourceName,
+      'why_it_matters': instance.whyItMatters,
+      'source_name': instance.sourceName,
       'url': instance.url,
-      'publishedDate': instance.publishedDate,
+      'published_date': instance.publishedDate,
       'category': instance.category,
-      'importanceScore': instance.importanceScore,
+      'importance_score': instance.importanceScore,
     };

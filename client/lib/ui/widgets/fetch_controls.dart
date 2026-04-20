@@ -80,7 +80,7 @@ class FetchControls extends ConsumerWidget {
                   final paperCats = ref.read(selectedPaperCategoriesProvider).toList();
                   final newsCats = ref.read(selectedNewsCategoriesProvider).toList();
                   final result = await ref
-                      .read(backendServiceProvider)
+                      .read(reportsServiceProvider)
                       .startCollection(
                         papersLimit: papersLimit,
                         newsLimit: newsLimit,

@@ -11,14 +11,14 @@ class Paper with _$Paper {
     required String id,
     required String title,
     required String summary,
-    required String keyContribution,
-    required String whyItMatters,
+    @JsonKey(name: 'key_contribution') required String keyContribution,
+    @JsonKey(name: 'why_it_matters') required String whyItMatters,
     required List<String> authors,
     required String source,
     required String url,
-    required String publishedDate,
+    @JsonKey(name: 'published_date') required String publishedDate,
     required String category,
-    required int importanceScore,
+    @JsonKey(name: 'importance_score') required int importanceScore,
     @Default(false) bool isRead,
   }) = _Paper;
 

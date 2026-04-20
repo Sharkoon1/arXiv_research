@@ -23,13 +23,17 @@ mixin _$Paper {
   String get id => throw _privateConstructorUsedError;
   String get title => throw _privateConstructorUsedError;
   String get summary => throw _privateConstructorUsedError;
+  @JsonKey(name: 'key_contribution')
   String get keyContribution => throw _privateConstructorUsedError;
+  @JsonKey(name: 'why_it_matters')
   String get whyItMatters => throw _privateConstructorUsedError;
   List<String> get authors => throw _privateConstructorUsedError;
   String get source => throw _privateConstructorUsedError;
   String get url => throw _privateConstructorUsedError;
+  @JsonKey(name: 'published_date')
   String get publishedDate => throw _privateConstructorUsedError;
   String get category => throw _privateConstructorUsedError;
+  @JsonKey(name: 'importance_score')
   int get importanceScore => throw _privateConstructorUsedError;
   bool get isRead => throw _privateConstructorUsedError;
 
@@ -51,14 +55,14 @@ abstract class $PaperCopyWith<$Res> {
       {String id,
       String title,
       String summary,
-      String keyContribution,
-      String whyItMatters,
+      @JsonKey(name: 'key_contribution') String keyContribution,
+      @JsonKey(name: 'why_it_matters') String whyItMatters,
       List<String> authors,
       String source,
       String url,
-      String publishedDate,
+      @JsonKey(name: 'published_date') String publishedDate,
       String category,
-      int importanceScore,
+      @JsonKey(name: 'importance_score') int importanceScore,
       bool isRead});
 }
 
@@ -154,14 +158,14 @@ abstract class _$$PaperImplCopyWith<$Res> implements $PaperCopyWith<$Res> {
       {String id,
       String title,
       String summary,
-      String keyContribution,
-      String whyItMatters,
+      @JsonKey(name: 'key_contribution') String keyContribution,
+      @JsonKey(name: 'why_it_matters') String whyItMatters,
       List<String> authors,
       String source,
       String url,
-      String publishedDate,
+      @JsonKey(name: 'published_date') String publishedDate,
       String category,
-      int importanceScore,
+      @JsonKey(name: 'importance_score') int importanceScore,
       bool isRead});
 }
 
@@ -251,14 +255,14 @@ class _$PaperImpl extends _Paper {
       {required this.id,
       required this.title,
       required this.summary,
-      required this.keyContribution,
-      required this.whyItMatters,
+      @JsonKey(name: 'key_contribution') required this.keyContribution,
+      @JsonKey(name: 'why_it_matters') required this.whyItMatters,
       required final List<String> authors,
       required this.source,
       required this.url,
-      required this.publishedDate,
+      @JsonKey(name: 'published_date') required this.publishedDate,
       required this.category,
-      required this.importanceScore,
+      @JsonKey(name: 'importance_score') required this.importanceScore,
       this.isRead = false})
       : _authors = authors,
         super._();
@@ -273,8 +277,10 @@ class _$PaperImpl extends _Paper {
   @override
   final String summary;
   @override
+  @JsonKey(name: 'key_contribution')
   final String keyContribution;
   @override
+  @JsonKey(name: 'why_it_matters')
   final String whyItMatters;
   final List<String> _authors;
   @override
@@ -289,10 +295,12 @@ class _$PaperImpl extends _Paper {
   @override
   final String url;
   @override
+  @JsonKey(name: 'published_date')
   final String publishedDate;
   @override
   final String category;
   @override
+  @JsonKey(name: 'importance_score')
   final int importanceScore;
   @override
   @JsonKey()
@@ -365,14 +373,14 @@ abstract class _Paper extends Paper {
       {required final String id,
       required final String title,
       required final String summary,
-      required final String keyContribution,
-      required final String whyItMatters,
+      @JsonKey(name: 'key_contribution') required final String keyContribution,
+      @JsonKey(name: 'why_it_matters') required final String whyItMatters,
       required final List<String> authors,
       required final String source,
       required final String url,
-      required final String publishedDate,
+      @JsonKey(name: 'published_date') required final String publishedDate,
       required final String category,
-      required final int importanceScore,
+      @JsonKey(name: 'importance_score') required final int importanceScore,
       final bool isRead}) = _$PaperImpl;
   const _Paper._() : super._();
 
@@ -385,8 +393,10 @@ abstract class _Paper extends Paper {
   @override
   String get summary;
   @override
+  @JsonKey(name: 'key_contribution')
   String get keyContribution;
   @override
+  @JsonKey(name: 'why_it_matters')
   String get whyItMatters;
   @override
   List<String> get authors;
@@ -395,10 +405,12 @@ abstract class _Paper extends Paper {
   @override
   String get url;
   @override
+  @JsonKey(name: 'published_date')
   String get publishedDate;
   @override
   String get category;
   @override
+  @JsonKey(name: 'importance_score')
   int get importanceScore;
   @override
   bool get isRead;

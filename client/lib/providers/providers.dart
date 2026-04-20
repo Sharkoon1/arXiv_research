@@ -3,15 +3,30 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/constants/app_constants.dart';
 import '../models/news_item.dart';
 import '../models/paper.dart';
-import '../services/backend_service.dart';
+import '../models/report.dart';
+import '../services/news_service.dart';
+import '../services/papers_service.dart';
+import '../services/reports_service.dart';
 import '../services/storage_service.dart';
 
 // ---------------------------------------------------------------------------
 // Services
 // ---------------------------------------------------------------------------
 
-final backendServiceProvider = Provider<BackendService>((ref) {
-  final service = BackendService();
+final papersServiceProvider = Provider<PapersService>((ref) {
+  final service = PapersService();
+  ref.onDispose(service.dispose);
+  return service;
+});
+
+final newsServiceProvider = Provider<NewsService>((ref) {
+  final service = NewsService();
+  ref.onDispose(service.dispose);
+  return service;
+});
+
+final reportsServiceProvider = Provider<ReportsService>((ref) {
+  final service = ReportsService();
   ref.onDispose(service.dispose);
   return service;
 });
@@ -64,14 +79,14 @@ final summarizeAgentStatusProvider = StateProvider<AgentStatus>((ref) => AgentSt
 // ---------------------------------------------------------------------------
 
 class ReportsNotifier extends StateNotifier<AsyncValue<List<ReportSummary>>> {
-  final BackendService _backend;
+  final ReportsService _reports;
 
-  ReportsNotifier(this._backend) : super(const AsyncValue.data([]));
+  ReportsNotifier(this._reports) : super(const AsyncValue.data([]));
 
   Future<void> load() async {
     state = const AsyncValue.loading();
     try {
-      final reports = await _backend.getReports();
+      final reports = await _reports.fetchAll();
       state = AsyncValue.data(reports);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -81,7 +96,7 @@ class ReportsNotifier extends StateNotifier<AsyncValue<List<ReportSummary>>> {
 
 final reportsProvider =
     StateNotifierProvider<ReportsNotifier, AsyncValue<List<ReportSummary>>>((ref) {
-  return ReportsNotifier(ref.read(backendServiceProvider));
+  return ReportsNotifier(ref.read(reportsServiceProvider));
 });
 
 // ---------------------------------------------------------------------------
@@ -146,14 +161,14 @@ class PapersState {
 }
 
 class PapersNotifier extends StateNotifier<PapersState> {
-  final BackendService _backend;
+  final PapersService _papers;
 
-  PapersNotifier(this._backend) : super(const PapersState());
+  PapersNotifier(this._papers) : super(const PapersState());
 
   Future<void> loadPapers() async {
     state = state.copyWith(status: FetchStatus.loading, clearError: true);
     try {
-      final papers = await _backend.getPapers();
+      final papers = await _papers.fetchAll();
       state = state.copyWith(papers: papers, status: FetchStatus.success);
     } catch (e) {
       state = state.copyWith(status: FetchStatus.error, errorMessage: e.toString());
@@ -170,7 +185,7 @@ class PapersNotifier extends StateNotifier<PapersState> {
 }
 
 final papersProvider = StateNotifierProvider<PapersNotifier, PapersState>((ref) {
-  return PapersNotifier(ref.read(backendServiceProvider));
+  return PapersNotifier(ref.read(papersServiceProvider));
 });
 
 // ---------------------------------------------------------------------------
@@ -207,14 +222,14 @@ class NewsState {
 }
 
 class NewsNotifier extends StateNotifier<NewsState> {
-  final BackendService _backend;
+  final NewsService _news;
 
-  NewsNotifier(this._backend) : super(const NewsState());
+  NewsNotifier(this._news) : super(const NewsState());
 
   Future<void> loadNews() async {
     state = state.copyWith(status: FetchStatus.loading, clearError: true);
     try {
-      final items = await _backend.getNews();
+      final items = await _news.fetchAll();
       state = state.copyWith(items: items, status: FetchStatus.success);
     } catch (e) {
       state = state.copyWith(status: FetchStatus.error, errorMessage: e.toString());
@@ -231,5 +246,5 @@ class NewsNotifier extends StateNotifier<NewsState> {
 }
 
 final newsProvider = StateNotifierProvider<NewsNotifier, NewsState>((ref) {
-  return NewsNotifier(ref.read(backendServiceProvider));
+  return NewsNotifier(ref.read(newsServiceProvider));
 });

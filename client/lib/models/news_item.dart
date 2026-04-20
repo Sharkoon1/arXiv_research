@@ -11,12 +11,12 @@ class NewsItem with _$NewsItem {
     required String id,
     required String title,
     required String summary,
-    required String whyItMatters,
-    required String sourceName,
+    @JsonKey(name: 'why_it_matters') required String whyItMatters,
+    @JsonKey(name: 'source_name') required String sourceName,
     required String url,
-    required String publishedDate,
+    @JsonKey(name: 'published_date') required String publishedDate,
     required String category,
-    required int importanceScore,
+    @JsonKey(name: 'importance_score') required int importanceScore,
   }) = _NewsItem;
 
   factory NewsItem.fromJson(Map<String, dynamic> json) => _$NewsItemFromJson(json);
