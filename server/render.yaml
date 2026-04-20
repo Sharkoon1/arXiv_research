@@ -16,3 +16,13 @@ services:
         value: 2025-11-15-preview
       - key: SERVER_BASE_URL
         value: https://arxiv-research.onrender.com
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: arxiv-research-redis
+          property: connectionString
+
+  - type: keyvalue
+    name: arxiv-research-redis
+    plan: free
+    ipAllowList: []
