@@ -13,6 +13,7 @@ class AppConstants {
   static const int maxFetchCount = 50;
 
   static const String prefsKeyReadIds = 'read_paper_ids';
+  static const String prefsKeyLastReport = 'last_report';
 
   static const List<String> paperCategories = [
     'LLM',

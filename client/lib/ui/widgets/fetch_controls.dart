@@ -4,6 +4,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import '../../providers/providers.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
+import '../../models/report.dart';
 
 class FetchControls extends ConsumerWidget {
   const FetchControls({super.key});
@@ -104,6 +105,16 @@ class FetchControls extends ConsumerWidget {
 
                   ref.read(briefingProvider.notifier).state = result.briefing;
                   ref.read(activeReportNameProvider.notifier).state = result.reportName;
+                  await ref.read(storageServiceProvider).saveLastReport(
+                        ReportDetail(
+                          id: result.reportId,
+                          name: result.reportName,
+                          briefing: result.briefing,
+                          papers: result.papers,
+                          news: result.news,
+                          createdAt: DateTime.now(),
+                        ),
+                      );
                   ref.read(reportsProvider.notifier).load();
                   if (result.errors.isNotEmpty) {
                     ref.read(papersProvider.notifier).setError(result.errors.join('\n'));

@@ -22,6 +22,7 @@ void main() {
     final mockStorage = MockStorageService();
 
     when(() => mockStorage.loadReadIds()).thenAnswer((_) async => {});
+    when(() => mockStorage.loadLastReport()).thenAnswer((_) async => null);
     when(() => mockPapers.dispose()).thenReturn(null);
     when(() => mockNews.dispose()).thenReturn(null);
     when(() => mockReports.dispose()).thenReturn(null);

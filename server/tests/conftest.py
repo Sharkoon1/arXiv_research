@@ -7,6 +7,9 @@ on first `Settings()` instantiation. The DB URL is SQLite in-memory with
 from __future__ import annotations
 
 import os
+from contextlib import asynccontextmanager
+from unittest.mock import AsyncMock
+from uuid import uuid4
 
 os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///:memory:")
 os.environ.setdefault("AZURE_PROJECT_ENDPOINT", "http://fake-azure.test")
@@ -81,6 +84,54 @@ async def db_session(session_factory) -> AsyncSession:
 @pytest.fixture
 def fake_cache() -> FakeRedisCache:
     return FakeRedisCache()
+
+
+@pytest.fixture
+def mock_session_factory(monkeypatch):
+    """Pure in-memory stand-in for the DB layer used by CollectService.
+
+    Patches ReportRepository at the collect_service import site so the service
+    runs without touching SQLAlchemy. Saved reports are exposed via
+    ``factory.saved_reports`` for assertions.
+    """
+    saved: list = []
+
+    class _StubReport:
+        def __init__(self, *, name, briefing, paper_ids, news_ids):
+            self.id = uuid4()
+            self.name = name
+            self.briefing = briefing
+            self.paper_ids = paper_ids
+            self.news_ids = news_ids
+
+    class _FakeReportRepository:
+        def __init__(self, db):
+            pass
+
+        async def create(self, *, name, briefing, paper_ids, news_ids):
+            report = _StubReport(
+                name=name,
+                briefing=briefing,
+                paper_ids=paper_ids,
+                news_ids=news_ids,
+            )
+            saved.append(report)
+            return report
+
+    monkeypatch.setattr(
+        "app.services.collect_service.ReportRepository",
+        _FakeReportRepository,
+    )
+
+    @asynccontextmanager
+    async def _session_ctx():
+        yield AsyncMock()
+
+    def factory():
+        return _session_ctx()
+
+    factory.saved_reports = saved
+    return factory
 
 
 @pytest_asyncio.fixture

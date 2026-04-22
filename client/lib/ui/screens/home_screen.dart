@@ -30,7 +30,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(readStatusProvider.notifier).load();
       ref.read(reportsProvider.notifier).load();
+      _hydrateLastReport();
     });
+  }
+
+  Future<void> _hydrateLastReport() async {
+    final cached = await ref.read(storageServiceProvider).loadLastReport();
+    if (cached == null || !mounted) return;
+    ref.read(papersProvider.notifier).setPapers(cached.papers);
+    ref.read(newsProvider.notifier).setNews(cached.news);
+    ref.read(briefingProvider.notifier).state = cached.briefing;
+    ref.read(activeReportNameProvider.notifier).state = cached.name;
   }
 
   @override
@@ -148,6 +158,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ref.read(newsProvider.notifier).setNews(detail.news);
       ref.read(briefingProvider.notifier).state = detail.briefing;
       ref.read(activeReportNameProvider.notifier).state = reportName;
+      await ref.read(storageServiceProvider).saveLastReport(detail);
     } catch (e) {
       ref.read(papersProvider.notifier).setError(e.toString());
       ref.read(newsProvider.notifier).setError(e.toString());

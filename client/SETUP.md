@@ -41,6 +41,6 @@ flutter devices
 ## Notes
 
 - No API key required — uses the public ArXiv Atom API
-- Papers are cached locally in Hive (persists across launches)
+- Read/unread status is persisted via `SharedPreferences`
 - The generated files (`paper.freezed.dart`, `paper.g.dart`) are already included
   — no need to run `build_runner`
