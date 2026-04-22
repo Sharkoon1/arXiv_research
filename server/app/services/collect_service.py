@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import random
-from typing import Callable, Optional
+from collections.abc import Callable
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,7 +14,6 @@ from app.schemas.news import NewsItemOut
 from app.schemas.paper import PaperOut
 from app.services.news_service import NewsService
 from app.services.paper_service import PaperService
-
 
 _PREFIXES = [
     "Quantum", "Neural", "Spectral", "Orbital", "Lattice", "Bayesian",
@@ -44,7 +43,7 @@ class CollectService:
         paper_service: PaperService,
         news_service: NewsService,
         session_factory: Callable[[], AsyncSession],
-        summarize_agent: Optional[SummarizeAgent] = None,
+        summarize_agent: SummarizeAgent | None = None,
     ):
         self.paper_service = paper_service
         self.news_service = news_service
@@ -89,7 +88,7 @@ class CollectService:
             errors=errors,
         )
 
-    async def _build_briefing(self, papers, news, errors: list[str]) -> Optional[str]:
+    async def _build_briefing(self, papers, news, errors: list[str]) -> str | None:
         if not (papers or news):
             return None
         try:

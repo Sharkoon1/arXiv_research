@@ -19,6 +19,9 @@ client-run:
 client-test:
 	cd client && flutter test
 
+client-lint:
+	cd client && flutter analyze
+
 client-build:
 	cd client && dart run build_runner build --delete-conflicting-outputs
 
@@ -34,6 +37,9 @@ server-run:
 
 server-test:
 	cd server && .venv/bin/pytest
+
+server-lint:
+	cd server && .venv/bin/ruff check .
 
 server-install:
 	cd server && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt

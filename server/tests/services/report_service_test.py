@@ -15,10 +15,8 @@ from app.repositories.news_repository import NewsRepository
 from app.repositories.paper_repository import PaperRepository
 from app.repositories.report_repository import ReportRepository
 from app.services.report_service import ReportService
-from tests.conftest import FakeRedisCache
-
-from tests.repositories.paper_repository_test import PAPER_ITEM
 from tests.repositories.news_repository_test import NEWS_ITEM
+from tests.repositories.paper_repository_test import PAPER_ITEM
 
 
 def make_service(db_session, cache) -> ReportService:

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import uuid
-from typing import Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,14 +18,14 @@ class ReportRepository:
         )
         return list(result.scalars().all())
 
-    async def get_by_id(self, report_id: uuid.UUID) -> Optional[Report]:
+    async def get_by_id(self, report_id: uuid.UUID) -> Report | None:
         result = await self.db.execute(select(Report).where(Report.id == report_id))
         return result.scalar_one_or_none()
 
     async def create(
         self,
         name: str,
-        briefing: Optional[str],
+        briefing: str | None,
         paper_ids: list[str],
         news_ids: list[str],
     ) -> Report:

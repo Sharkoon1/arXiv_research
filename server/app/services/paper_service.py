@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Callable, Optional
+from collections.abc import Callable
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -39,8 +39,8 @@ class PaperService:
     def __init__(
         self,
         session_factory: Callable[[], AsyncSession],
-        agent: Optional[PapersAgent] = None,
-        ranking_agent: Optional[PapersRankingAgent] = None,
+        agent: PapersAgent | None = None,
+        ranking_agent: PapersRankingAgent | None = None,
     ):
         self.session_factory = session_factory
         self.agent = agent or PapersAgent()
@@ -52,7 +52,7 @@ class PaperService:
     async def fetch_and_store(
         self,
         limit: int,
-        categories: Optional[list[str]] = None,
+        categories: list[str] | None = None,
     ) -> list[Paper]:
         selected = [c for c in (categories or DEFAULT_CATEGORIES) if c in CATEGORY_PROMPTS]
         if not selected:
@@ -66,7 +66,7 @@ class PaperService:
         )
 
         ranking_input = f"Limit: {limit}. "
-        for (label, _), result in zip(prompts, raw_results):
+        for (label, _), result in zip(prompts, raw_results, strict=False):
             text = result if isinstance(result, str) else "[]"
             ranking_input += f"{label} papers: {text} "
 

@@ -1,6 +1,5 @@
 from app.repositories.news_repository import NewsRepository
 
-
 NEWS_ITEM = {
     "title": "OpenAI releases GPT-X",
     "summary": "A new frontier model.",

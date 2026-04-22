@@ -1,5 +1,4 @@
 from app.repositories.paper_repository import PaperRepository
-
 from tests.repositories.paper_repository_test import PAPER_ITEM
 
 

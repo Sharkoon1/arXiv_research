@@ -1,9 +1,9 @@
 import uuid
-from typing import Optional
+
 from pydantic import BaseModel
 
-from app.schemas.paper import PaperOut
 from app.schemas.news import NewsItemOut
+from app.schemas.paper import PaperOut
 
 
 class CollectRequest(BaseModel):
@@ -18,5 +18,5 @@ class CollectResultResponse(BaseModel):
     report_name: str
     papers: list[PaperOut] = []
     news: list[NewsItemOut] = []
-    briefing: Optional[str] = None
+    briefing: str | None = None
     errors: list[str] = []

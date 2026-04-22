@@ -26,7 +26,7 @@ server/    # Python FastAPI backend
 ### Tech stack
 - **Flutter** + **Dart** (>=3.3.0)
 - **State management**: `flutter_riverpod` (StateNotifier pattern, no code-gen providers)
-- **Local storage**: `hive_ce_flutter` (stores papers as JSON maps in a Box) + `shared_preferences` (read IDs, last fetch time)
+- **Local storage**: `shared_preferences` (read IDs). Papers themselves are fetched fresh from the backend and held in-memory via Riverpod.
 - **Networking**: `http` package
 - **Models**: `freezed` + `json_serializable` (generates `.freezed.dart` and `.g.dart`)
 - **Animations**: `flutter_animate`
@@ -36,22 +36,27 @@ server/    # Python FastAPI backend
 ```
 client/
   lib/
-    main.dart                        # Entry point — inits Hive, StorageService, ProviderScope
+    main.dart                        # Entry point — ProviderScope + MaterialApp
     core/
       constants/
         app_colors.dart
-        app_constants.dart           # URLs, query, fetch count limits, Hive box name
+        app_constants.dart           # Backend URL, fetch count limits, categories
       theme/
         app_theme.dart
+      utils/
+        api_exception.dart           # Typed exceptions for backend errors
     models/
-      paper.dart                     # @freezed Paper model (no @HiveType — stored as JSON)
-      paper.freezed.dart             # generated
-      paper.g.dart                   # generated
+      paper.dart                     # @freezed Paper model (JSON-serializable)
+      news_item.dart                 # @freezed NewsItem model
+      report.dart                    # @freezed Report model
+      *.freezed.dart, *.g.dart       # generated
     providers/
       providers.dart                 # All Riverpod providers: papers, readStatus, theme, fetchCount
     services/
-      storage_service.dart           # Hive box (papers as JSON) + SharedPreferences
-      backend_service.dart           # HTTP client for server API
+      storage_service.dart           # SharedPreferences wrapper (read IDs)
+      papers_service.dart            # HTTP client for papers endpoints
+      news_service.dart              # HTTP client for news endpoints
+      reports_service.dart           # HTTP client for report endpoints
     ui/
       screens/
         home_screen.dart
@@ -59,6 +64,7 @@ client/
         category_chip.dart
         empty_state.dart
         fetch_controls.dart
+        news_card.dart
         paper_card.dart
         paper_detail_sheet.dart
         papers_list.dart
@@ -68,21 +74,15 @@ client/
       paper_test.dart
     services/
       xml_parser_test.dart
-      arxiv_service_test.dart
+      papers_service_test.dart
+      news_service_test.dart
+      reports_service_test.dart
+      storage_service_test.dart
     providers/
       papers_notifier_test.dart
 ```
 
 ### Key decisions / gotchas
-
-#### hive_ce instead of hive
-`hive` / `hive_generator` don't support `analyzer >=7.0.0` which `freezed ^2.5.x` and `riverpod_generator` require. Replaced with `hive_ce_flutter` + `hive_ce_generator` (community fork). Correct import:
-```dart
-import 'package:hive_ce_flutter/hive_flutter.dart'; // NOT hive_ce_flutter.dart
-```
-
-#### No @HiveType on Paper
-Mixing `@freezed` and `@HiveType` on the same class causes build_runner errors. `Paper` is stored as a JSON map (`paper.toJson()`) in the Hive box and deserialized with `Paper.fromJson()`. No adapter registration needed in `main.dart`.
 
 #### Code generation
 After any model/provider changes run:
@@ -105,10 +105,10 @@ cd client && flutter test --reporter expanded
 ```
 
 ### Mocking
-Uses `mocktail` for mocks. Mock `ArxivService` and `StorageService`, then inject via `ProviderContainer` overrides:
+Uses `mocktail` for mocks. Mock the HTTP services (`PapersService`, `NewsService`, `ReportsService`) and `StorageService`, then inject via `ProviderContainer` overrides:
 ```dart
 final container = ProviderContainer(overrides: [
-  arxivServiceProvider.overrideWithValue(mockArxiv),
+  papersServiceProvider.overrideWithValue(mockPapers),
   storageServiceProvider.overrideWithValue(mockStorage),
 ]);
 ```
@@ -118,23 +118,61 @@ final container = ProviderContainer(overrides: [
 ## Server (FastAPI)
 
 ### Tech stack
-- **Python** + **FastAPI**
+- **Python 3.12** + **FastAPI**
+- **Database**: SQLAlchemy (async) + Alembic migrations. SQLite for local/tests, Postgres in prod.
+- **Cache**: Redis (optional — falls back to DB if unavailable)
+- **Validation**: Pydantic v2 (`pydantic-settings` for config)
+- **HTTP**: `httpx` (async)
+- **Testing**: `pytest` + `pytest-asyncio`
+- **Linting**: `ruff`
 - Deployed via **Docker** on **Render**
 
 ### Project structure
 ```
 server/
   app/
-    routers/       # API route handlers
-    agents/        # AI agent logic
-  Dockerfile
+    main.py                          # FastAPI app factory, router wiring
+    dependencies.py                  # FastAPI Depends() factories
+    core/
+      config.py                      # Settings (pydantic-settings)
+      database.py                    # SQLAlchemy engine / session factory
+      redis_client.py                # RedisCache with DB fallback
+      security.py                    # API key verification
+      exceptions.py                  # Domain exceptions (e.g. ReportNotFound)
+    models/                          # SQLAlchemy ORM models (Paper, NewsItem, Report)
+    schemas/                         # Pydantic request/response schemas
+    repositories/                    # DB access layer (one per model)
+    services/                        # Business logic (collect, paper, news, report)
+    routers/                         # API route handlers (collect, papers, news, reports)
+    agents/                          # AI agent wrappers (papers, news, ranking, summarize)
+  tests/
+    conftest.py                      # Async DB fixtures, FakeRedisCache, auth client
+    health_test.py
+    repositories/                    # Repository unit tests
+    routers/                         # Router integration tests
+    services/                        # Service unit tests
+  Dockerfile                         # Python 3.12-slim base
+  docker-compose.yml
   render.yaml
+  pyproject.toml                     # pytest + ruff config
   requirements.txt
 ```
 
 ### Running the server
 ```bash
 cd server
-pip install -r requirements.txt
-uvicorn app.main:app --reload
+python3.12 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+.venv/bin/uvicorn app.main:app --reload
 ```
+
+### Testing the server
+```bash
+make server-test
+make server-lint      # ruff
+```
+
+### Key decisions / gotchas
+- **Dev/prod parity**: the venv must use Python 3.12 (matches the Dockerfile). `X | None` type hints require 3.10+ at runtime.
+- **Redis is optional**: `RedisCache` transparently falls back to the DB when the client raises. Tests use `FakeRedisCache` from [tests/conftest.py](server/tests/conftest.py).
+- **Layered architecture**: routers → services → repositories → models. Keep business logic out of routers.

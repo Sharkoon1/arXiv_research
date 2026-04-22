@@ -1,4 +1,3 @@
-from typing import Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -11,7 +10,7 @@ class Settings(BaseSettings):
     azure_api_key: str
     azure_api_version: str = "2025-11-15-preview"
     app_api_key: str
-    redis_url: Optional[str] = None
+    redis_url: str | None = None
     cache_ttl_seconds: int = 86400
 
 

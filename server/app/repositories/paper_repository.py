@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import uuid
+from collections.abc import Iterable
 from datetime import date
-from typing import Iterable
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession

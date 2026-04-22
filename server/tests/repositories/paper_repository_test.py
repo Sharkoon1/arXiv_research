@@ -1,6 +1,5 @@
 from app.repositories.paper_repository import PaperRepository
 
-
 PAPER_ITEM = {
     "title": "Attention Is All You Need",
     "summary": "Transformer architecture.",

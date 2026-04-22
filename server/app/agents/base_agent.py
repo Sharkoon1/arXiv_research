@@ -1,8 +1,9 @@
 import json
 import logging
 import re
-from typing import Optional
+
 import httpx
+
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -19,7 +20,7 @@ class BaseAgent:
         }
         self._params = {"api-version": settings.azure_api_version}
 
-    async def _post(self, input_data: str) -> Optional[str]:
+    async def _post(self, input_data: str) -> str | None:
         """Post to the agent and return the raw assistant text."""
         url = f"{self._base}/applications/{self.agent_name}/protocols/openai/responses"
 
@@ -106,7 +107,7 @@ class BaseAgent:
 
         return all_items
 
-    async def call_raw(self, input_data: str) -> Optional[str]:
+    async def call_raw(self, input_data: str) -> str | None:
         """Call the agent and return the raw text response (no JSON parsing)."""
         return await self._post(input_data)
 

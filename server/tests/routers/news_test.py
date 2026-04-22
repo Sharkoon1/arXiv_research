@@ -1,5 +1,4 @@
 from app.repositories.news_repository import NewsRepository
-
 from tests.repositories.news_repository_test import NEWS_ITEM
 
 

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Optional
 
 import redis.asyncio as aioredis
 from redis.exceptions import RedisError
@@ -16,7 +15,7 @@ class RedisCache:
     rather than failing the request.
     """
 
-    def __init__(self, client: Optional[aioredis.Redis]):
+    def __init__(self, client: aioredis.Redis | None):
         self.client = client
 
     async def get(self, key: str) -> str | None:

@@ -3,9 +3,8 @@ import uuid
 from app.repositories.news_repository import NewsRepository
 from app.repositories.paper_repository import PaperRepository
 from app.repositories.report_repository import ReportRepository
-
-from tests.repositories.paper_repository_test import PAPER_ITEM
 from tests.repositories.news_repository_test import NEWS_ITEM
+from tests.repositories.paper_repository_test import PAPER_ITEM
 
 
 async def test_list_reports_empty(client):

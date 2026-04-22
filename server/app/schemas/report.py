@@ -1,10 +1,10 @@
 import uuid
 from datetime import datetime
-from typing import Optional
+
 from pydantic import BaseModel, ConfigDict
 
-from app.schemas.paper import PaperOut
 from app.schemas.news import NewsItemOut
+from app.schemas.paper import PaperOut
 
 
 class ReportSummary(BaseModel):
@@ -20,7 +20,7 @@ class ReportSummary(BaseModel):
 class ReportDetail(BaseModel):
     id: uuid.UUID
     name: str
-    briefing: Optional[str] = None
+    briefing: str | None = None
     papers: list[PaperOut] = []
     news: list[NewsItemOut] = []
     created_at: datetime

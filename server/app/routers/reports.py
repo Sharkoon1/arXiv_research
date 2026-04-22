@@ -22,5 +22,5 @@ async def get_report(
 ):
     try:
         return await service.get_by_id(report_id)
-    except ReportNotFound:
-        raise HTTPException(status_code=404, detail="Report not found")
+    except ReportNotFound as err:
+        raise HTTPException(status_code=404, detail="Report not found") from err
